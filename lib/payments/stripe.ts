@@ -11,6 +11,21 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil'
 });
 
+// Guest checkout — no existing user required. Account is created via webhook.
+export async function createGuestCheckoutSession({ priceId }: { priceId: string }) {
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [{ price: priceId, quantity: 1 }],
+    mode: 'subscription',
+    success_url: `${process.env.BASE_URL}/checkout/success`,
+    cancel_url: `${process.env.BASE_URL}/spa`,
+    allow_promotion_codes: true,
+    subscription_data: { trial_period_days: 14 },
+    metadata: { source: 'guest', priceId }
+  });
+  redirect(session.url!);
+}
+
 export async function createCheckoutSession({
   team,
   priceId

@@ -6,6 +6,26 @@ import { NewUser } from '@/lib/db/schema';
 const key = new TextEncoder().encode(process.env.AUTH_SECRET);
 const SALT_ROUNDS = 10;
 
+// ── Setup token (account activation after guest checkout) ────────────────────
+
+export async function createSetupToken(userId: number): Promise<string> {
+  return new SignJWT({ userId, type: 'setup' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('24h')
+    .sign(key);
+}
+
+export async function verifySetupToken(token: string): Promise<{ userId: number } | null> {
+  try {
+    const { payload } = await jwtVerify(token, key, { algorithms: ['HS256'] });
+    if (payload.type !== 'setup' || typeof payload.userId !== 'number') return null;
+    return { userId: payload.userId };
+  } catch {
+    return null;
+  }
+}
+
 export async function hashPassword(password: string) {
   return hash(password, SALT_ROUNDS);
 }
@@ -53,7 +73,7 @@ export async function setSession(user: NewUser) {
   (await cookies()).set('session', encryptedSession, {
     expires: expiresInOneDay,
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
   });
 }

@@ -4,6 +4,10 @@
 */
 @custom-variant dark (&:is(.dark *));
 
+html {
+  scroll-behavior: smooth;
+}
+
 @import "tw-animate-css";
 
 @variant dark (&:is(.dark *));
@@ -66,6 +70,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -119,38 +124,38 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --background: 222 25% 9%;
+    --foreground: 210 20% 96%;
+    --card: 222 22% 13%;
+    --card-foreground: 210 20% 96%;
+    --popover: 222 22% 13%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 210 20% 96%;
+    --primary-foreground: 222 25% 9%;
+    --secondary: 222 18% 19%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 222 18% 19%;
+    --muted-foreground: 220 12% 62%;
+    --accent: 222 18% 22%;
+    --accent-foreground: 210 20% 96%;
+    --destructive: 0 68% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 18% 22%;
+    --input: 222 18% 19%;
+    --ring: 222 15% 72%;
+    --chart-1: 220 70% 58%;
+    --chart-2: 160 60% 48%;
+    --chart-3: 30 80% 58%;
+    --chart-4: 280 65% 63%;
+    --chart-5: 340 75% 58%;
+    --sidebar-background: 222 22% 11%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 224 76% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 222 18% 19%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 222 18% 22%;
+    --sidebar-ring: 217 91% 62%;
   }
 }
 
@@ -158,6 +163,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -200,30 +206,44 @@
 */
 
 .dark {
-  --background: hsl(240 10% 3.9%);
-  --foreground: hsl(0 0% 98%);
-  --card: hsl(240 10% 3.9%);
-  --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(240 10% 3.9%);
-  --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(0 0% 98%);
-  --primary-foreground: hsl(240 5.9% 10%);
-  --secondary: hsl(240 3.7% 15.9%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 3.7% 15.9%);
-  --muted-foreground: hsl(240 5% 64.9%);
-  --accent: hsl(240 3.7% 15.9%);
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
+  /* fond principal : bleu-ardoise, pas noir pur */
+  --background: hsl(222 25% 9%);
+  --foreground: hsl(210 20% 96%);
+
+  /* cartes légèrement plus claires que le fond → profondeur visuelle */
+  --card: hsl(222 22% 13%);
+  --card-foreground: hsl(210 20% 96%);
+
+  --popover: hsl(222 22% 13%);
+  --popover-foreground: hsl(210 20% 96%);
+
+  --primary: hsl(210 20% 96%);
+  --primary-foreground: hsl(222 25% 9%);
+
+  /* éléments secondaires / inputs : une couche entre fond et carte */
+  --secondary: hsl(222 18% 19%);
+  --secondary-foreground: hsl(210 20% 96%);
+
+  --muted: hsl(222 18% 19%);
+  --muted-foreground: hsl(220 12% 62%);
+
+  --accent: hsl(222 18% 22%);
+  --accent-foreground: hsl(210 20% 96%);
+
+  /* destructive un peu plus lisible */
+  --destructive: hsl(0 68% 42%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 3.7% 15.9%);
-  --input: hsl(240 3.7% 15.9%);
-  --ring: hsl(240 4.9% 83.9%);
-  --chart-1: hsl(220 70% 50%);
-  --chart-2: hsl(160 60% 45%);
-  --chart-3: hsl(30 80% 55%);
-  --chart-4: hsl(280 65% 60%);
-  --chart-5: hsl(340 75% 55%);
+
+  /* bordures visibles mais discrètes */
+  --border: hsl(222 18% 22%);
+  --input: hsl(222 18% 19%);
+  --ring: hsl(222 15% 72%);
+
+  --chart-1: hsl(220 70% 58%);
+  --chart-2: hsl(160 60% 48%);
+  --chart-3: hsl(30 80% 58%);
+  --chart-4: hsl(280 65% 63%);
+  --chart-5: hsl(340 75% 58%);
 }
 
 /*
@@ -269,7 +289,32 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+
+  /* Compatibility overrides for legacy gray utilities used in pages/components. */
+  .dark .text-gray-900 {
+    color: hsl(var(--foreground));
+  }
+
+  .dark .text-gray-700 {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .dark .text-gray-500 {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .dark .placeholder-gray-500::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .dark .border-gray-300 {
+    border-color: hsl(var(--border));
   }
 }

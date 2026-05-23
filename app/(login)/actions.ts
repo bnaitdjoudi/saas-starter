@@ -16,7 +16,8 @@ import {
   ActivityType,
   invitations
 } from '@/lib/db/schema';
-import { comparePasswords, hashPassword, setSession } from '@/lib/auth/session';
+import { comparePasswords, hashPassword, setSession, verifySetupToken } from '@/lib/auth/session';
+import { provisionLaravelAccount } from '@/lib/laravel';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createCheckoutSession } from '@/lib/payments/stripe';
@@ -86,18 +87,33 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
     };
   }
 
-  await Promise.all([
-    setSession(foundUser),
-    logActivity(foundTeam?.id, foundUser.id, ActivityType.SIGN_IN)
-  ]);
-
   const redirectTo = formData.get('redirect') as string | null;
   if (redirectTo === 'checkout') {
+    await Promise.all([
+      setSession(foundUser),
+      logActivity(foundTeam?.id, foundUser.id, ActivityType.SIGN_IN)
+    ]);
     const priceId = formData.get('priceId') as string;
     return createCheckoutSession({ team: foundTeam, priceId });
   }
 
-  redirect('/dashboard');
+  const [laravelResult] = await Promise.all([
+    provisionLaravelAccount({
+      email,
+      password,
+      stripeProductId: foundTeam?.stripeProductId,
+      planName: foundTeam?.planName
+    }),
+    setSession(foundUser),
+    logActivity(foundTeam?.id, foundUser.id, ActivityType.SIGN_IN)
+  ]);
+
+  if (laravelResult?.token && process.env.LARAVEL_URL) {
+    const userParam = encodeURIComponent(JSON.stringify(laravelResult.user));
+    redirect(`${process.env.LARAVEL_URL}/auto-login?token=${laravelResult.token}&user=${userParam}`);
+  }
+
+  redirect(process.env.LARAVEL_URL!);
 });
 
 const signUpSchema = z.object({
@@ -206,20 +222,93 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
     role: userRole
   };
 
-  await Promise.all([
+  const redirectTo = formData.get('redirect') as string | null;
+  if (redirectTo === 'checkout') {
+    await Promise.all([
+      db.insert(teamMembers).values(newTeamMember),
+      logActivity(teamId, createdUser.id, ActivityType.SIGN_UP),
+      setSession(createdUser)
+    ]);
+    const priceId = formData.get('priceId') as string;
+    return createCheckoutSession({ team: createdTeam, priceId });
+  }
+
+  const [laravelResult] = await Promise.all([
+    provisionLaravelAccount({ email, password }),
     db.insert(teamMembers).values(newTeamMember),
     logActivity(teamId, createdUser.id, ActivityType.SIGN_UP),
     setSession(createdUser)
   ]);
 
-  const redirectTo = formData.get('redirect') as string | null;
-  if (redirectTo === 'checkout') {
-    const priceId = formData.get('priceId') as string;
-    return createCheckoutSession({ team: createdTeam, priceId });
+  if (laravelResult?.token && process.env.LARAVEL_URL) {
+    const userParam = encodeURIComponent(JSON.stringify(laravelResult.user));
+    redirect(`${process.env.LARAVEL_URL}/auto-login?token=${laravelResult.token}&user=${userParam}`);
   }
 
-  redirect('/dashboard');
+  redirect(process.env.LARAVEL_URL!);
 });
+
+// ── Setup password after guest checkout ──────────────────────────────────────
+
+const setupPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8).max(100),
+  confirmPassword: z.string().min(8).max(100)
+});
+
+export const setupPassword = validatedAction(
+  setupPasswordSchema,
+  async ({ token, password, confirmPassword }) => {
+    if (password !== confirmPassword) {
+      return { error: 'Passwords do not match.' };
+    }
+
+    const tokenData = await verifySetupToken(token);
+    if (!tokenData) {
+      return { error: 'This link has expired or is invalid. Please contact support.' };
+    }
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, tokenData.userId))
+      .limit(1);
+
+    if (!user) {
+      return { error: 'Account not found.' };
+    }
+
+    const [teamRow] = await db
+      .select({ stripeProductId: teams.stripeProductId, planName: teams.planName })
+      .from(teamMembers)
+      .innerJoin(teams, eq(teamMembers.teamId, teams.id))
+      .where(eq(teamMembers.userId, user.id))
+      .limit(1);
+
+    const passwordHash = await hashPassword(password);
+    await db
+      .update(users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(users.id, user.id));
+
+    const [, laravelResult] = await Promise.all([
+      setSession(user),
+      provisionLaravelAccount({
+        email: user.email,
+        password,
+        stripeProductId: teamRow?.stripeProductId,
+        planName: teamRow?.planName
+      })
+    ]);
+
+    if (laravelResult?.token && process.env.LARAVEL_URL) {
+      const userParam = encodeURIComponent(JSON.stringify(laravelResult.user));
+      redirect(`${process.env.LARAVEL_URL}/auto-login?token=${laravelResult.token}&user=${userParam}`);
+    }
+
+    redirect(process.env.LARAVEL_URL!);
+  }
+);
 
 export async function signOut() {
   const user = (await getUser()) as User;
