@@ -1,0 +1,7 @@
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+[build.environment]
+  # BASE_URL is not a secret — exclude it from secrets scanning
+  SECRETS_SCAN_OMIT_KEYS = "BASE_URL"
