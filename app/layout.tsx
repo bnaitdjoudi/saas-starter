@@ -23,23 +23,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.className}`}
+      className={`${manrope.className} dark`}
       suppressHydrationWarning
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function () {
-                try {
-                  var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  document.documentElement.classList.toggle('dark', isDark);
-                } catch (e) {}
-              })();
-            `
-          }}
-        />
-      </head>
+      <head></head>
       <body className="min-h-[100dvh] bg-background text-foreground">
         <SWRConfig
           value={{
