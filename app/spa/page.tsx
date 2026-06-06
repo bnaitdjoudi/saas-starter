@@ -123,7 +123,6 @@ const PLANS = [
             '30 automated backups (incremental)',
             'Unlimited webhooks',
             '200,000 messages / month',
-            'Unlimited retries',
             '30 days log retention',
             'Priority support'
         ],
